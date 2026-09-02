@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.lwq.maintenance.ApplicationSmokeTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.522 s -- in com.lwq.maintenance.ApplicationSmokeTest
