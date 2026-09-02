@@ -131,3 +131,140 @@ python -m unittest test_analyze.py
 ```
 
 当前仓库已验证后端 7 项测试、前端生产构建和 Python 指标单测通过；Docker 运行仍需在安装 Docker Desktop 的机器上验证。只有记录真实测试环境和结果后，才可把数字写入简历。建议继续阅读：[测试方案](docs/testing.md)、[演示脚本](docs/demo-script.md)、[面试问答](docs/interview.md)、[简历模板](docs/resume.md)。
+
+
+# Enterprise Equipment Repair & Maintenance Work Order Management System
+
+A frontend-backend separated monolithic application for enterprise equipment maintenance scenarios, covering equipment ledger, fault reporting, acceptance & dispatch, repair processing, result acceptance, attachment retention, audit logs, metric dashboards, and offline analysis.
+
+> 
+> This repository is an independently designed learning project. Sample users, equipment, work orders, and chart data are all desensitized simulated data and do not represent real enterprise production scale or performance.
+
+## 1. Project Highlights
+
+- Clear state machine: `Pending Acceptance → Pending Dispatch → Under Repair → Pending Acceptance Check → Closed`; rejected acceptance returns to Under Repair.
+- RBAC and data scope: reporters only see their own work orders, maintainers only see work orders assigned to them.
+- Consistency protection: status updates and audit logs share the same transaction; `@Version` optimistic locking prevents concurrent overwrites.
+- Explainable metrics: FRT, MTTR, SLA compliance rate, high-frequency faults, and personnel workload are all calculated from work order timestamps.
+- Deliverable: Knife4j API docs, Docker Compose, Excel export, Pandas analysis, automated tests, and demo scripts.
+
+## 2. Tech Stack
+
+- Backend: Java 17, Spring Boot 3, Spring Security, JWT, MyBatis-Plus, MySQL 8, Redis 7, MinIO, Knife4j, Apache POI
+- Frontend: Vue 3, Vue Router, Element Plus, ECharts, Axios, Vite
+- Analysis: Python, Pandas, Matplotlib, SQLAlchemy, Excel
+- Deployment: Docker Compose, Nginx
+
+## 3. Directory Structure
+
+```
+enterprise-maintenance/
+├─ backend/       Spring Boot API, database scripts, and tests
+├─ frontend/      Vue 3 admin console
+├─ analysis/      Desensitized work order analysis and 50k-row mock data generator
+├─ deploy/        Nginx configuration
+├─ docs/          Architecture, ER, deployment, testing, interview, and demo materials
+└─ docker-compose.yml
+```
+
+Note: `src`, `target`, `uploads`, `Dockerfile`, and `pom.xml` all belong inside the `backend` folder!
+
+## 4. Local Startup (for development & learning)
+
+The backend development environment uses an H2 in-memory database and a local attachment directory by default — no need to install MySQL, Redis, or MinIO first.
+
+### Easiest: Double-click to start
+
+1. Open the project root directory `enterprise-maintenance`.
+2. Double-click `启动系统.bat`.
+3. Wait until the window shows `System is ready: http://localhost:5173`; the browser will open automatically.
+4. Log in with `admin / Admin@123`.
+5. When finished, double-click `停止系统.bat` — do not go to Task Manager and kill uncertain Java or Node processes directly.
+
+The batch files actually call PowerShell; the backend and frontend run in the background after startup, so you can close the startup prompt window once you see the success message.
+
+### PowerShell startup
+
+```
+.\start-system.ps1
+```
+
+Stop command:
+
+```
+.\stop-system.ps1
+```
+
+If you need to rebuild the backend, go into `backend` and manually run `mvn package`. The command to run the executable JAR directly is `java -jar target\enterprise-maintenance-1.0.0.jar`.
+
+Access:
+
+- API: `http://localhost:8080`
+- Knife4j: `http://localhost:8080/doc.html`
+- H2 Console: `http://localhost:8080/h2-console`
+
+In another terminal:
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+Visit `http://localhost:5173` in your browser.
+
+## 5. Demo Accounts
+
+表格
+
+| Role | Username | Password | Core Permissions |
+| --- | --- | --- | --- |
+| Administrator | admin | Admin@123 | All features |
+| Reporter | reporter | Reporter@123 | Create and view own work orders |
+| Dispatcher | dispatcher | Dispatcher@123 | Accept, dispatch, equipment maintenance |
+| Maintainer | maintainer | Maintainer@123 | Process work orders assigned to self |
+| Acceptor | acceptor | Acceptor@123 | Approve or reject repair results |
+
+These plaintext passwords are for local demo only. Before production deployment, you must change the initialization data and use BCrypt passwords.
+
+## 6. Docker Deployment
+
+```
+Copy-Item .env.example .env
+# Modify all default passwords in .env
+docker compose up -d --build
+```
+
+Visit `http://localhost:8088`; the MinIO console is at `http://localhost:9001`. See the [Deployment Guide](docs/deployment.md) for detailed steps.
+
+## 7. Offline Analysis
+
+```
+cd analysis
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+$env:ANALYSIS_DB_URL='mysql+pymysql://analysis_reader:actual_password@localhost:3306/maintenance?charset=utf8mb4'
+python analyze.py --output output
+```
+
+Output includes an analysis workbook, monthly trend charts, and fault Pareto charts. See [Testing & Metrics Documentation](docs/testing.md) for metric definitions.
+
+Before generating stress test data, execute only against a local test database:
+
+```
+python generate_seed.py --rows 50000 --batch 1000
+```
+
+## 8. Verification Commands
+
+```
+cd backend
+mvn test
+cd ..\frontend
+npm run build
+cd ..\analysis
+python -m unittest test_analyze.py
+```
+
+The current repository has been verified with 7 backend tests passing, frontend production build passing, and Python metric unit tests passing; Docker runtime still needs to be verified on a machine with Docker Desktop installed. Only write numbers into your resume after recording the real test environment and results. Recommended further reading: [Testing Plan](docs/testing.md), [Demo Script](docs/demo-script.md), [Interview Q&A](docs/interview.md), [Resume Template](docs/resume.md).
