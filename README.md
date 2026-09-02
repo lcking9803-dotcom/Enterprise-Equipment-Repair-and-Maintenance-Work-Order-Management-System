@@ -30,6 +30,7 @@ enterprise-maintenance/
 ├─ docs/          架构、ER、部署、测试、面试和演示材料
 └─ docker-compose.yml
 ```
+其中src,target,uploads,Dockerfile,pom.xml都是属于backend文件夹里面的！！！
 
 ## 4. 本地启动（适合开发学习）
 
